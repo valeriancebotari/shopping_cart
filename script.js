@@ -30,8 +30,7 @@ class Products {
         const image = item.fields.image.fields.file.url;
         return { title, price, id, image };
       });
-      console.log(products);
-
+      
       return products;
     } catch (error) {
       console.log(error);
@@ -82,12 +81,13 @@ class UI {
           event.target.disabled = true;
           // add to cart
           let cartItem = { ...Storage.getProduct(id), amount: 1 };
-          cart = [...cart, cartItem];
+          //cart = [...cart, cartItem];
+          cart.push(cartItem);
           Storage.saveCart(cart);
           // add to DOM
           this.setCartValues(cart);
-         // this.addCartItem(cartItem);
-         // this.showCart();
+          this.addCartItem(cartItem);
+          this.toggleShowCart();
         });
       }
     });
@@ -102,7 +102,95 @@ class UI {
     cartTotal.innerText = Number(tempTotal.toFixed(2));
     cartItems.innerText = itemsTotal;
   }
-}
+
+  addCartItem(item){
+    const div = document.createElement('div');
+    div.classList.add('cart-item');
+    div.innerHTML = `
+        <img src=${item.image} alt="${item.title}">
+            <div>
+                <h4>${item.title}</h4>
+                <h5>$${item.price}</h5>
+                <span class="remove-item" data-id=${item.id}>remove</span>
+            </div>
+            <div>
+                <i class="fas fa-chevron-up" data-id=${item.id}></i>
+                <p class="item-amount">${item.amount}</p>
+                <i class="fas fa-chevron-down" data-id=${item.id}></i>
+            </div>
+        `;
+        cartContent.appendChild(div);
+  }
+
+  toggleShowCart(){
+    if (cartOverlay.classList.contains('transparentBcg')){
+          cartOverlay.classList.remove('transparentBcg');
+    }
+    else {
+          cartOverlay.classList.add('transparentBcg')
+    }
+
+    if (cartDOM.classList.contains('showCart')){
+          cartDOM.classList.remove('showCart');
+    }
+    else{
+          cartDOM.classList.add('showCart');
+    }    
+  }
+
+  //hideCart(){
+  //  cartOverlay.classList.remove('transparentBcg'); 
+   // cartDOM.classList.remove('showCart');
+ // }
+
+  setupAPP(){
+    cart = Storage.getCart();
+    console.log(cart);
+    this.setCartValues(cart);
+    this.populateCart(cart);
+    cartBtn.addEventListener('click', this.toggleShowCart);
+    //closeCartBtn.addEventListener('click', () => this.hideCart());
+    closeCartBtn.addEventListener('click', this.toggleShowCart);
+  }
+
+  populateCart(cartArray){
+    /* const cartList = cartArray.map( (item) => {
+        return `
+            <div class="cart-item">
+                <img src=${item.image} alt="${item.title}">
+                <div>
+                    <h4>${item.title}</h4>
+                    <h5>$${item.price}</h5>
+                    <span class="remove-item" data-id=${item.id}>remove</span>
+                </div>
+                <div>
+                    <i class="fas fa-chevron-up" data-id=${item.id}></i>
+                    <p class="item-amount">${item.amount}</p>
+                    <i class="fas fa-chevron-down" data-id=${item.id}></i>
+                </div>
+            </div>
+        `;
+    }).join(''); */
+    
+    cartArray.forEach( (item) => this.addCartItem(item));
+    //cartContent.innerHTML = result;
+  }
+
+  cartLogic(){
+      clearCartBtn.addEventListener('click', () =>{
+          cart = [];  
+          Storage.clearCart();
+
+          const list = document.querySelectorAll('.cart-item');
+          console.log(list);
+          list.forEach( (item) => {
+            item.remove();
+          });
+          
+      });
+  }
+
+} // end class UI
 
 // local storage
 
@@ -119,6 +207,14 @@ class Storage {
     static saveCart(cart){
         localStorage.setItem("cart", JSON.stringify(cart));
     }
+
+    static getCart(){
+        return localStorage.getItem('cart') ? JSON.parse(localStorage.getItem('cart')) : [];
+    }
+
+    static clearCart(){
+        localStorage.removeItem('cart');
+    }
    
 } // end class Storage
 
@@ -126,12 +222,16 @@ document.addEventListener("DOMContentLoaded", () => {
     const ui = new UI();
     const products = new Products();
 
+    // setup app
+    ui.setupAPP();
+
     // get all products
     products.getProducts().then(products => {
         ui.displayProducts(products);
         Storage.saveProducts(products);
         }).then( () => {
                ui.getBagButtons(); 
+               ui.cartLogic();
            });
 });
 
