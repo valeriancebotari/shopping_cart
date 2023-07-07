@@ -1,8 +1,10 @@
 /* ********** JS CODE *************** */
-const client = contentful.createClient({
-  space: "u6dwy9mp7mk5",
-  accessToken: "4dsRrfqNQupKcV3CgdA-M3oEkShGYXhFp-s0Mmp1908"
+/*
+  const client = contentful.createClient({
+  space: "space ID",
+  accessToken: "access token ID"
 });
+*/
 
 const cartBtn = document.querySelector(".cart-btn");
 const closeCartBtn = document.querySelector(".close-cart");
@@ -21,9 +23,11 @@ class Products {
   async getProducts() {
     try {
 
-      let contentful = await client.getEntries({
+      /*
+       let contentful = await client.getEntries({
         content_type: "comfyHouseProducts"
       });
+      */
 
       /*
          console.log(contentful.items);
@@ -31,14 +35,13 @@ class Products {
          .catch(console.error);
       */
 
-      /*
          let result = await fetch("products.json");
          let data = await result.json();      
          let products = data.items;
-      */
       
-      let products = contentful.items;
-      console.log(products);
+      
+      //let products = contentful.items;
+      
       products = products.map(item => {
         const { title, price } = item.fields;
         const { id } = item.sys;
